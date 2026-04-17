@@ -1,0 +1,139 @@
+﻿{% extends "base.html" %}
+{% block title %}{{ patient.name }} - DentAI-X{% endblock %}
+{% block page_title %}Patient Details{% endblock %}
+
+{% block content %}
+
+<!-- Back button -->
+<div class="mb-3">
+  <a href="{{ url_for('admin_patients') }}" class="btn btn-sm btn-outline">
+    <i class="fa-solid fa-arrow-left"></i> Back to Patients
+  </a>
+</div>
+
+<!-- Patient info card -->
+<div class="card mb-3">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-user-injured"></i> {{ patient.name }}</h2>
+    <div style="display:flex;gap:.6rem">
+      <a href="{{ url_for('admin_edit_patient', pid=patient.id) }}" class="btn btn-sm btn-outline">
+        <i class="fa-solid fa-pen"></i> Edit
+      </a>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="info-pairs">
+      <div class="info-pair">
+        <span class="info-label">Full Name</span>
+        <span class="info-value">{{ patient.name }}</span>
+      </div>
+      <div class="info-pair">
+        <span class="info-label">Age</span>
+        <span class="info-value">{{ patient.age() or ' - ' }}</span>
+      </div>
+      <div class="info-pair">
+        <span class="info-label">Date of Birth</span>
+        <span class="info-value">{{ patient.dob or ' - ' }}</span>
+      </div>
+      <div class="info-pair">
+        <span class="info-label">Gender</span>
+        <span class="info-value">{{ patient.gender or ' - ' }}</span>
+      </div>
+      <div class="info-pair">
+        <span class="info-label">Phone</span>
+        <span class="info-value">{{ patient.phone or ' - ' }}</span>
+      </div>
+      <div class="info-pair">
+        <span class="info-label">Email</span>
+        <span class="info-value">{{ patient.email or ' - ' }}</span>
+      </div>
+      <div class="info-pair">
+        <span class="info-label">IC / Passport</span>
+        <span class="info-value">{{ patient.ic_number or ' - ' }}</span>
+      </div>
+    </div>
+
+    {% if patient.notes %}
+    <div class="patient-notes mt-4">
+      <div class="notes-label"><i class="fa-solid fa-note-sticky"></i> Admin Notes</div>
+      <div class="notes-body">{{ patient.notes }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Upload image for dentist detection -->
+<div class="card mb-3">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-image"></i> Upload Image For Detection</h2>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('admin_upload_patient_image', pid=patient.id) }}" enctype="multipart/form-data" style="display:flex;gap:.8rem;align-items:center;flex-wrap:wrap">
+      <input type="file" name="file" accept=".png,.jpg,.jpeg,.bmp,.webp" class="form-control" style="max-width:360px" required>
+      <button type="submit" class="btn btn-primary">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Upload Image
+      </button>
+    </form>
+    <p class="text-muted mt-2 mb-0">Admin uploads only. Dentist will open this patient and run detection.</p>
+  </div>
+</div>
+
+<!-- Detection history for this patient -->
+<div class="card">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-clock-rotate-left"></i> Detection History</h2>
+    <span class="badge badge-blue">{{ detections|length }} record{{ 's' if detections|length != 1 }}</span>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>#</th><th>Image</th><th>Summary</th><th>Status</th><th>Dentist</th><th>Date</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for d in detections %}
+        <tr>
+          <td>{{ d.id }}</td>
+          <td>
+            {% if d.original_image %}
+              <a href="{{ url_for('static', filename='uploads/' ~ d.original_image) }}" target="_blank" rel="noopener">
+                <img src="{{ url_for('static', filename='uploads/' ~ d.original_image) }}" alt="Patient image" style="width:62px;height:46px;object-fit:cover;border-radius:8px;border:1px solid #dce3f0"/>
+              </a>
+            {% else %}
+              <span class="text-muted"> - </span>
+            {% endif %}
+          </td>
+          <td class="text-muted" style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            {{ d.summary_text or ('Pending dentist detection' if not d.results_json else ' - ') }}
+          </td>
+          <td>
+            {% if not d.results_json %}
+              <span class="badge badge-blue">Pending</span>
+            {% elif d.total_findings == 0 %}
+              <span class="badge badge-success">No findings</span>
+            {% else %}
+              <span class="badge badge-warning">{{ d.total_findings }} finding{{ 's' if d.total_findings != 1 }}</span>
+            {% endif %}
+          </td>
+          <td class="text-muted">{{ d.dentist.username if d.dentist else ' - ' }}</td>
+          <td class="text-muted">{{ d.created_at | myt }}</td>
+          <td>
+            {% if d.results_json %}
+              <a href="{{ url_for('admin_detection_detail', did=d.id) }}" class="btn btn-sm btn-outline">View</a>
+            {% else %}
+              <span class="badge badge-blue">Waiting Dentist</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty-row">No images or detections yet for this patient.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+
+
+

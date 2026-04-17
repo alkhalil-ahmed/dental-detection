@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}DentAI-X{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body class="app-layout">
+
+<div class="co-brand-bar">
+  <span class="cbr-label">In Collaboration with</span>
+  <div class="cbr-logos">
+    <img src="{{ url_for('static', filename='images/UMPSA.png') }}" alt="Universiti Malaysia Pahang Al-Sultan Abdullah" class="cbr-logo" title="Universiti Malaysia Pahang Al-Sultan Abdullah"/>
+    <div class="cbr-sep"></div>
+    <img src="{{ url_for('static', filename='images/IIUM.png') }}" alt="International Islamic University Malaysia" class="cbr-logo" title="International Islamic University Malaysia"/>
+  </div>
+</div>
+
+<header class="topnav" id="topnav">
+  <div class="topnav-inner">
+
+    <!-- Logo -->
+    <a href="{{ url_for('dashboard') }}" class="tnav-logo">
+      <i class="fa-solid fa-tooth"></i>
+      <span>DentAI-X</span>
+    </a>
+
+    <!-- Nav links -->
+    <nav class="tnav-links" id="tnavLinks">
+      {% if current_user.role == 'admin' %}
+        <a href="{{ url_for('admin_dashboard') }}" class="tnav-item {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+          <i class="fa-solid fa-chart-pie"></i> Dashboard
+        </a>
+        <a href="{{ url_for('admin_patients') }}" class="tnav-item {% if 'patient' in request.endpoint %}active{% endif %}">
+          <i class="fa-solid fa-user-injured"></i> Patients
+        </a>
+        <a href="{{ url_for('admin_users') }}" class="tnav-item {% if 'user' in request.endpoint and request.endpoint != 'profile' %}active{% endif %}">
+          <i class="fa-solid fa-users-gear"></i> Manage Users
+        </a>
+        <a href="{{ url_for('admin_history') }}" class="tnav-item {% if 'history' in request.endpoint or 'detection_detail' in request.endpoint %}active{% endif %}">
+          <i class="fa-solid fa-clock-rotate-left"></i> History
+        </a>
+      {% else %}
+        <a href="{{ url_for('dentist_dashboard') }}" class="tnav-item {% if request.endpoint == 'dentist_dashboard' %}active{% endif %}">
+          <i class="fa-solid fa-chart-pie"></i> Dashboard
+        </a>
+        <a href="{{ url_for('dentist_detect') }}" class="tnav-item {% if request.endpoint == 'dentist_detect' %}active{% endif %}">
+          <i class="fa-solid fa-magnifying-glass"></i> Run Detection
+        </a>
+        <a href="{{ url_for('dentist_patients') }}" class="tnav-item {% if request.endpoint in ('dentist_patients','dentist_patient_detail') %}active{% endif %}">
+          <i class="fa-solid fa-users"></i> Patients
+        </a>
+      {% endif %}
+      <a href="{{ url_for('about') }}" class="tnav-item {% if request.endpoint == 'about' %}active{% endif %}">
+        <i class="fa-solid fa-circle-info"></i> About
+      </a>
+    </nav>
+
+    <!-- Right: avatar dropdown -->
+    <div class="tnav-right">
+      <div class="tnav-user" id="userMenuBtn" onclick="toggleUserMenu()">
+        {% if current_user.avatar %}
+          <img src="{{ url_for('static', filename=current_user.avatar) }}" class="tnav-avatar-img" alt="avatar"/>
+        {% else %}
+          <div class="tnav-avatar-letter">{{ current_user.username[0]|upper }}</div>
+        {% endif %}
+        <span class="tnav-username">{{ current_user.username }}</span>
+        <i class="fa-solid fa-chevron-down tnav-caret"></i>
+      </div>
+      <div class="tnav-dropdown" id="userMenu">
+        <div class="tdrop-header">
+          <div class="tdrop-name">{{ current_user.username }}</div>
+          <div class="tdrop-role badge-{{ current_user.role }}">{{ current_user.role|title }}</div>
+        </div>
+        <a href="{{ url_for('profile') }}" class="tdrop-item {% if request.endpoint == 'profile' %}active{% endif %}">
+          <i class="fa-solid fa-user-circle"></i> My Profile
+        </a>
+        <div class="tdrop-sep"></div>
+        <a href="{{ url_for('logout') }}" class="tdrop-item tdrop-logout">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </a>
+      </div>
+    </div>
+
+    <!-- Mobile hamburger -->
+    <button class="tnav-hamburger" onclick="document.getElementById('tnavLinks').classList.toggle('open')">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+  </div>
+</header>
+
+<main class="page-wrap">
+  <div class="page-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+              <i class="fa-solid {% if category == 'success' %}fa-circle-check{% elif category == 'danger' %}fa-circle-xmark{% elif category == 'warning' %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+              <span>{{ message|safe }}</span>
+              <button class="alert-close" onclick="this.parentElement.remove()">-</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+</main>
+
+<script>
+function toggleUserMenu() {
+  document.getElementById('userMenu').classList.toggle('show');
+}
+document.addEventListener('click', function(e) {
+  const btn  = document.getElementById('userMenuBtn');
+  const menu = document.getElementById('userMenu');
+  if (menu && !btn.contains(e.target) && !menu.contains(e.target)) {
+    menu.classList.remove('show');
+  }
+});
+</script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
+
+
+

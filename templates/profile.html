@@ -1,0 +1,339 @@
+﻿{% extends "base.html" %}
+{% block title %}My Profile - DentAI-X{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+
+  <div class="profile-left">
+    <div class="profile-avatar-wrap">
+      {% if current_user.avatar %}
+        <img src="{{ url_for('static', filename=current_user.avatar) }}" class="profile-avatar-img" id="avatarPreview" alt="Avatar"/>
+      {% else %}
+        <div class="profile-avatar-placeholder" id="avatarPreview">
+          {{ current_user.username[0]|upper }}
+        </div>
+      {% endif %}
+
+      <!-- Upload overlay -->
+      <form method="POST" enctype="multipart/form-data" id="avatarForm">
+        <input type="hidden" name="action" value="upload_avatar"/>
+        <input type="file" name="avatar_file" id="avatarInput" accept=".png,.jpg,.jpeg" style="display:none"/>
+        <button type="button" class="avatar-edit-btn" onclick="document.getElementById('avatarInput').click()" title="Change photo">
+          <i class="fa-solid fa-camera"></i>
+        </button>
+      </form>
+    </div>
+
+    <h2 class="profile-name">{{ current_user.username }}</h2>
+    <span class="profile-role-badge badge-{{ current_user.role }}">{{ current_user.role|title }}</span>
+    <p class="profile-email-sub">{{ current_user.email }}</p>
+    <p class="profile-since">Member since {{ current_user.created_at | myt('%B %Y') }}</p>
+
+    <!-- Save avatar button (hidden until file selected) -->
+    <button id="saveAvatarBtn" class="btn btn-primary btn-full mt-3" style="display:none" onclick="document.getElementById('avatarForm').submit()">
+      <i class="fa-solid fa-check"></i> Save Photo
+    </button>
+  </div>
+
+  <div class="profile-right">
+
+    <!-- Update Info -->
+    <div class="card profile-card">
+      <div class="profile-card-hdr">
+        <div class="pch-icon pch-blue"><i class="fa-solid fa-user-pen"></i></div>
+        <div>
+          <h3>Personal Information</h3>
+          <span>Update your username and email address</span>
+        </div>
+      </div>
+      <form method="POST" class="profile-form">
+        <input type="hidden" name="action" value="update_info"/>
+        <div class="pf-row">
+          <div class="pf-group">
+            <label>Username</label>
+            <div class="pf-input-wrap">
+              <i class="fa-solid fa-user"></i>
+              <input type="text" name="username" value="{{ current_user.username }}" required/>
+            </div>
+          </div>
+          <div class="pf-group">
+            <label>Email Address</label>
+            <div class="pf-input-wrap">
+              <i class="fa-solid fa-envelope"></i>
+              <input type="email" name="email" value="{{ current_user.email }}" required/>
+            </div>
+          </div>
+        </div>
+        <div class="pf-group">
+          <label>Role</label>
+          <div class="pf-input-wrap">
+            <i class="fa-solid fa-id-badge"></i>
+            <input type="text" value="{{ current_user.role|title }}" disabled/>
+          </div>
+        </div>
+        <div class="pf-actions">
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Change Password -->
+    <div class="card profile-card">
+      <div class="profile-card-hdr">
+        <div class="pch-icon pch-orange"><i class="fa-solid fa-lock"></i></div>
+        <div>
+          <h3>Change Password</h3>
+          <span>Keep your account secure with a strong password</span>
+        </div>
+      </div>
+      <form method="POST" class="profile-form">
+        <input type="hidden" name="action" value="change_password"/>
+        <div class="pf-group">
+          <label>Current Password</label>
+          <div class="pf-input-wrap">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" name="current_password" required placeholder="Enter current password"/>
+          </div>
+        </div>
+        <div class="pf-row">
+          <div class="pf-group">
+            <label>New Password</label>
+            <div class="pf-input-wrap">
+              <i class="fa-solid fa-key"></i>
+              <input type="password" name="new_password" required placeholder="At least 6 characters" minlength="6"/>
+            </div>
+          </div>
+          <div class="pf-group">
+            <label>Confirm New Password</label>
+            <div class="pf-input-wrap">
+              <i class="fa-solid fa-key"></i>
+              <input type="password" name="confirm_password" required placeholder="Repeat new password"/>
+            </div>
+          </div>
+        </div>
+        <div class="pf-actions">
+          <button type="submit" class="btn btn-warning"><i class="fa-solid fa-shield-halved"></i> Update Password</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Account Overview -->
+    <div class="card profile-card">
+      <div class="profile-card-hdr">
+        <div class="pch-icon pch-teal"><i class="fa-solid fa-circle-info"></i></div>
+        <div>
+          <h3>Account Overview</h3>
+          <span>Your account details at a glance</span>
+        </div>
+      </div>
+      <div class="profile-info-grid">
+        <div class="pig-item">
+          <span class="pig-label"><i class="fa-solid fa-user"></i> Username</span>
+          <span class="pig-val">{{ current_user.username }}</span>
+        </div>
+        <div class="pig-item">
+          <span class="pig-label"><i class="fa-solid fa-envelope"></i> Email</span>
+          <span class="pig-val">{{ current_user.email }}</span>
+        </div>
+        <div class="pig-item">
+          <span class="pig-label"><i class="fa-solid fa-id-badge"></i> Role</span>
+          <span class="pig-val"><span class="badge badge-{{ current_user.role }}">{{ current_user.role|title }}</span></span>
+        </div>
+        <div class="pig-item">
+          <span class="pig-label"><i class="fa-solid fa-calendar"></i> Joined</span>
+          <span class="pig-val">{{ current_user.created_at | myt('%B %d, %Y') }}</span>
+        </div>
+        <div class="pig-item">
+          <span class="pig-label"><i class="fa-solid fa-circle-check"></i> Status</span>
+          <span class="pig-val"><span class="badge badge-success">Active</span></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="cropModal" class="crop-modal">
+  <div class="crop-modal-box">
+    <div class="crop-modal-hdr">
+      <h3><i class="fa-solid fa-crop-simple"></i> Adjust Your Photo</h3>
+      <p>Drag to reposition &middot; Slider or scroll to zoom</p>
+    </div>
+    <div class="crop-viewport" id="cropViewport">
+      <img id="cropImg" src="" alt="" draggable="false"/>
+    </div>
+    <div class="crop-zoom-row">
+      <i class="fa-solid fa-magnifying-glass-minus"></i>
+      <input type="range" id="zoomSlider" class="crop-slider" min="0.5" max="4" step="0.01" value="1"/>
+      <i class="fa-solid fa-magnifying-glass-plus"></i>
+    </div>
+    <div class="crop-modal-actions">
+      <button type="button" id="cancelCropBtn" class="btn btn-outline"><i class="fa-solid fa-xmark"></i> Cancel</button>
+      <button type="button" id="confirmCropBtn" class="btn btn-primary"><i class="fa-solid fa-check"></i> Use This Photo</button>
+    </div>
+  </div>
+</div>
+<canvas id="cropCanvas" style="display:none"></canvas>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  const VSIZE  = 240;
+  const OUTPUT = 400;
+  const fileInput  = document.getElementById('avatarInput');
+  const modal      = document.getElementById('cropModal');
+  const cropImg    = document.getElementById('cropImg');
+  const cropVP     = document.getElementById('cropViewport');
+  const slider     = document.getElementById('zoomSlider');
+  const cancelBtn  = document.getElementById('cancelCropBtn');
+  const confirmBtn = document.getElementById('confirmCropBtn');
+  const canvas     = document.getElementById('cropCanvas');
+
+  let natW = 0, natH = 0, scale = 1, posX = 0, posY = 0;
+
+  function updateTrack(){
+    const min = parseFloat(slider.min), max = parseFloat(slider.max), val = parseFloat(slider.value);
+    const pct = ((val - min) / (max - min) * 100).toFixed(1);
+    slider.style.background = `linear-gradient(to right,var(--primary) 0%,var(--primary) ${pct}%,#e2e8f0 ${pct}%)`;
+  }
+
+  function clamp(){
+    const iw = natW * scale, ih = natH * scale;
+    posX = iw < VSIZE ? (VSIZE - iw) / 2 : Math.min(0, Math.max(VSIZE - iw, posX));
+    posY = ih < VSIZE ? (VSIZE - ih) / 2 : Math.min(0, Math.max(VSIZE - ih, posY));
+  }
+
+  function render(){
+    clamp();
+    cropImg.style.transform = `translate(${posX}px,${posY}px) scale(${scale})`;
+  }
+
+  function zoomTo(newScale, cx, cy){
+    cx = cx === undefined ? VSIZE/2 : cx;
+    cy = cy === undefined ? VSIZE/2 : cy;
+    const ix = (cx - posX) / scale;
+    const iy = (cy - posY) / scale;
+    scale = newScale;
+    posX = cx - ix * scale;
+    posY = cy - iy * scale;
+    render();
+  }
+
+  function openModal(src, nw, nh){
+    natW = nw; natH = nh;
+    const minS = Math.max(VSIZE / nw, VSIZE / nh);
+    scale = minS * 1.05;
+    slider.min   = minS.toFixed(4);
+    slider.max   = (minS * 4).toFixed(4);
+    slider.step  = (minS * 0.01).toFixed(4);
+    slider.value = scale;
+    posX = (VSIZE - natW * scale) / 2;
+    posY = (VSIZE - natH * scale) / 2;
+    cropImg.src = src;
+    cropImg.style.width  = natW + 'px';
+    cropImg.style.height = natH + 'px';
+    updateTrack();
+    render();
+    modal.style.display = 'flex';
+  }
+
+  /* file select */
+  fileInput.addEventListener('change', function(){
+    if (!this.files || !this.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const img = new Image();
+      img.onload = function(){ openModal(e.target.result, img.naturalWidth, img.naturalHeight); };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(this.files[0]);
+  });
+
+  /* zoom slider */
+  slider.addEventListener('input', function(){
+    zoomTo(parseFloat(this.value));
+    updateTrack();
+  });
+
+  /* scroll to zoom */
+  cropVP.addEventListener('wheel', function(e){
+    e.preventDefault();
+    const minS = parseFloat(slider.min), maxS = parseFloat(slider.max);
+    const newS = Math.min(maxS, Math.max(minS, scale - e.deltaY * 0.002));
+    slider.value = newS;
+    zoomTo(newS);
+    updateTrack();
+  }, {passive: false});
+
+  /* drag mouse */
+  let dragging = false, dx0, dy0, px0, py0;
+  cropVP.addEventListener('mousedown', function(e){
+    dragging = true; dx0 = e.clientX; dy0 = e.clientY; px0 = posX; py0 = posY;
+    cropVP.style.cursor = 'grabbing'; e.preventDefault();
+  });
+  document.addEventListener('mousemove', function(e){
+    if (!dragging) return;
+    posX = px0 + e.clientX - dx0; posY = py0 + e.clientY - dy0; render();
+  });
+  document.addEventListener('mouseup', function(){ dragging = false; cropVP.style.cursor = 'grab'; });
+
+  /* drag touch */
+  cropVP.addEventListener('touchstart', function(e){
+    const t = e.touches[0]; dragging = true;
+    dx0 = t.clientX; dy0 = t.clientY; px0 = posX; py0 = posY;
+    e.preventDefault();
+  }, {passive: false});
+  document.addEventListener('touchmove', function(e){
+    if (!dragging) return;
+    const t = e.touches[0];
+    posX = px0 + t.clientX - dx0; posY = py0 + t.clientY - dy0; render();
+  }, {passive: false});
+  document.addEventListener('touchend', function(){ dragging = false; });
+
+  /* cancel */
+  cancelBtn.addEventListener('click', function(){
+    modal.style.display = 'none'; fileInput.value = '';
+  });
+
+  confirmBtn.addEventListener('click', function(){
+    canvas.width = OUTPUT; canvas.height = OUTPUT;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, OUTPUT, OUTPUT);
+    const srcX = -posX / scale;
+    const srcY = -posY / scale;
+    const srcW =  VSIZE / scale;
+    const srcH =  VSIZE / scale;
+    ctx.drawImage(cropImg, srcX, srcY, srcW, srcH, 0, 0, OUTPUT, OUTPUT);
+
+    canvas.toBlob(function(blob){
+      /* inject cropped file back into the input */
+      try {
+        const file = new File([blob], 'avatar.jpg', {type: 'image/jpeg'});
+        const dt   = new DataTransfer();
+        dt.items.add(file);
+        fileInput.files = dt.files;
+      } catch(err) {}
+
+      /* update the avatar preview circle */
+      const url  = canvas.toDataURL('image/jpeg', 0.92);
+      const prev = document.getElementById('avatarPreview');
+      if (prev.tagName === 'IMG') {
+        prev.src = url;
+      } else {
+        const img = document.createElement('img');
+        img.src = url; img.className = 'profile-avatar-img';
+        img.id = 'avatarPreview'; img.alt = 'Avatar';
+        prev.parentNode.replaceChild(img, prev);
+      }
+      document.getElementById('saveAvatarBtn').style.display = 'block';
+      modal.style.display = 'none';
+    }, 'image/jpeg', 0.92);
+  });
+})();
+</script>
+{% endblock %}
+
+
+
+

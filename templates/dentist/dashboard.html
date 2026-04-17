@@ -1,0 +1,100 @@
+﻿{% extends "base.html" %}
+{% block title %}Dentist Dashboard - DentAI-X{% endblock %}
+{% block page_title %}My Dashboard{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+  <a href="{{ url_for('dentist_patients') }}" class="stat-card stat-blue stat-link">
+    <div class="stat-icon"><i class="fa-solid fa-user-injured"></i></div>
+    <div class="stat-body">
+      <span class="stat-value">{{ patients|length }}</span>
+      <span class="stat-label">Total Patients</span>
+    </div>
+  </a>
+  <div class="stat-card stat-teal">
+    <div class="stat-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+    <div class="stat-body">
+      <span class="stat-value">{{ total_my }}</span>
+      <span class="stat-label">My Detections</span>
+    </div>
+  </div>
+</div>
+
+<!-- Quick action -->
+<div class="card mt-4">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-bolt"></i> Quick Detection</h2>
+  </div>
+  <div class="card-body">
+    {% if patients %}
+      <p class="text-muted mb-3">Select a patient and go to the detection page.</p>
+      <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+        <select id="quickPatient" class="form-select" style="max-width:280px">
+          <option value=""> -  Select patient  - </option>
+          {% for p in patients %}
+            <option value="{{ p.id }}">{{ p.name }}</option>
+          {% endfor %}
+        </select>
+        <button class="btn btn-primary" onclick="goDetect()">
+          <i class="fa-solid fa-magnifying-glass"></i> Run Detection
+        </button>
+      </div>
+    {% else %}
+      <p class="text-muted">No patients available. Ask the admin to add patients.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Recent detections -->
+<div class="card mt-4">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-clock-rotate-left"></i> My Recent Detections</h2>
+    <a href="{{ url_for('dentist_detect') }}" class="btn btn-sm btn-primary">
+      <i class="fa-solid fa-plus"></i> New Detection
+    </a>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>#</th><th>Patient</th><th>Summary</th><th>Findings</th><th>Date</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for d in my_detections %}
+        <tr>
+          <td>{{ d.id }}</td>
+          <td><strong>{{ d.patient.name if d.patient else ' - ' }}</strong></td>
+          <td class="text-muted" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            {{ d.summary_text or ' - ' }}
+          </td>
+          <td>
+            {% if d.total_findings == 0 %}
+              <span class="badge badge-success">None</span>
+            {% else %}
+              <span class="badge badge-warning">{{ d.total_findings }}</span>
+            {% endif %}
+          </td>
+          <td class="text-muted">{{ d.created_at | myt }}</td>
+          <td><a href="{{ url_for('dentist_detection_detail', did=d.id) }}" class="btn btn-sm btn-outline">View</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="empty-row">No detections yet. <a href="{{ url_for('dentist_detect') }}">Run first detection  -> </a></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function goDetect() {
+  const pid = document.getElementById('quickPatient').value;
+  if (!pid) { alert('Please select a patient first.'); return; }
+  window.location = '{{ url_for("dentist_detect") }}?patient_id=' + pid;
+}
+</script>
+{% endblock %}
+
+
+
+

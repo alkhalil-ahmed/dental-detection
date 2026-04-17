@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register - DentAI-X</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body class="auth-page">
+<div class="auth-split">
+
+  <div class="auth-brand">
+    <div class="auth-brand-inner">
+      <div class="auth-logo">
+        <i class="fa-solid fa-tooth"></i>
+        <span>Dental<span>AI</span></span>
+      </div>
+      <h2>Join DentAI-X</h2>
+      <p>Create your account and start detecting dental conditions with the power of deep learning.</p>
+      <div class="auth-features">
+        <div><i class="fa-solid fa-user-doctor"></i> Dentist Access</div>
+        <div><i class="fa-solid fa-file-medical"></i> Patient Records</div>
+        <div><i class="fa-solid fa-magnifying-glass"></i> AI Detection</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-form-wrap">
+    <div class="auth-card">
+      <h1>Create Account</h1>
+      <p class="auth-sub">Fill in the details below</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">
+            <i class="fa-solid fa-circle-{{ 'check' if category == 'success' else 'xmark' if category == 'danger' else 'info' }}"></i>
+            {{ message|safe }}
+          </div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('register') }}">
+        <div class="form-group">
+          <label>Username</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" name="username" placeholder="Choose a username" required autofocus/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" name="email" placeholder="your@email.com" required/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Role</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-user-tag"></i>
+            <select name="role">
+              <option value="dentist">Dentist</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" name="password" id="pw1" placeholder="At least 6 characters" required/>
+            <button type="button" class="pw-toggle" onclick="togglePw('pw1',this)"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" name="confirm_password" id="pw2" placeholder="Repeat password" required/>
+            <button type="button" class="pw-toggle" onclick="togglePw('pw2',this)"><i class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">
+          <i class="fa-solid fa-user-plus"></i> Create Account
+        </button>
+      </form>
+
+      <p class="auth-footer-txt">Already have an account? <a href="{{ url_for('login') }}">Sign In</a></p>
+    </div>
+  </div>
+</div>
+<script>
+function togglePw(id, btn) {
+  const f = document.getElementById(id);
+  f.type = f.type === 'password' ? 'text' : 'password';
+  btn.querySelector('i').className = f.type === 'password' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
+}
+</script>
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,51 @@
+﻿{% extends "base.html" %}
+{% block title %}Detection History - DentAI-X{% endblock %}
+{% block page_title %}Detection History{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-clock-rotate-left"></i> All Detections</h2>
+    <form method="GET" class="search-form">
+      <div class="input-icon compact">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" name="q" value="{{ q }}" placeholder="Search patient..."/>
+      </div>
+    </form>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>#</th><th>Patient</th><th>Dentist</th><th>Summary</th><th>Findings</th><th>Date</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for d in detections %}
+        <tr>
+          <td>{{ d.id }}</td>
+          <td><strong>{{ d.patient.name if d.patient else ' - ' }}</strong></td>
+          <td class="text-muted">{{ d.dentist.username if d.dentist else ' - ' }}</td>
+          <td class="text-muted" style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            {{ d.summary_text or ' - ' }}
+          </td>
+          <td>
+            {% if d.total_findings == 0 %}
+              <span class="badge badge-success">None</span>
+            {% else %}
+              <span class="badge badge-warning">{{ d.total_findings }}</span>
+            {% endif %}
+          </td>
+          <td class="text-muted">{{ d.created_at | myt }}</td>
+          <td><a href="{{ url_for('admin_detection_detail', did=d.id) }}" class="btn btn-sm btn-outline">View</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty-row">No detection records found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+
+
+

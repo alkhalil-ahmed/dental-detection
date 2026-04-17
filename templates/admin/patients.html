@@ -1,0 +1,64 @@
+﻿{% extends "base.html" %}
+{% block title %}Patients - DentAI-X{% endblock %}
+{% block page_title %}Patients{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-user-injured"></i> Patient List</h2>
+    <div style="display:flex;gap:.6rem;align-items:center">
+      <form method="GET" class="search-form">
+        <div class="input-icon compact">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" name="q" value="{{ q }}" placeholder="Search patient..."/>
+        </div>
+      </form>
+      <a href="{{ url_for('admin_add_patient') }}" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-plus"></i> Add Patient
+      </a>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>#</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th><th>Email</th><th>Detections</th><th>Added</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for p in patients %}
+        <tr>
+          <td>{{ p.id }}</td>
+          <td><a href="{{ url_for('admin_patient_detail', pid=p.id) }}" style="font-weight:700;color:var(--primary);text-decoration:none">{{ p.name }}</a></td>
+          <td>{{ p.age() }}</td>
+          <td>{{ p.gender or ' - ' }}</td>
+          <td class="text-muted">{{ p.phone or ' - ' }}</td>
+          <td class="text-muted">{{ p.email or ' - ' }}</td>
+          <td><span class="badge badge-blue">{{ p.detections|length }}</span></td>
+          <td class="text-muted" style="white-space:nowrap">{{ p.created_at | myt }}</td>
+          <td class="action-cell">
+            <form method="POST" action="{{ url_for('admin_upload_patient_image', pid=p.id) }}" enctype="multipart/form-data" style="display:inline">
+              <input type="file" id="upload-image-{{ p.id }}" name="file" accept=".png,.jpg,.jpeg,.bmp,.webp" hidden onchange="if(this.files.length){ this.form.submit(); }">
+              <label for="upload-image-{{ p.id }}" class="btn btn-sm btn-primary" title="Add image for dentist" style="cursor:pointer">
+                <i class="fa-solid fa-image"></i>
+              </label>
+            </form>
+            <a href="{{ url_for('admin_edit_patient', pid=p.id) }}" class="btn btn-sm btn-outline" title="Edit">
+              <i class="fa-solid fa-pen"></i>
+            </a>
+            <form method="POST" action="{{ url_for('admin_delete_patient', pid=p.id) }}" style="display:inline"
+                  onsubmit="return confirm('Delete patient {{ p.name }}? All detections will be lost.')">
+              <button class="btn btn-sm btn-danger" title="Delete"><i class="fa-solid fa-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="9" class="empty-row">No patients found. <a href="{{ url_for('admin_add_patient') }}">Add one  -> </a></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+
+
+

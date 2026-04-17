@@ -1,0 +1,490 @@
+﻿{% extends "base.html" %}
+{% block title %}Run Detection - DentAI-X{% endblock %}
+{% block page_title %}Run Detection{% endblock %}
+
+{% block content %}
+<div class="detect-layout">
+
+  <!-- Left: Upload Panel -->
+  <div class="card detect-upload-card">
+    <div class="card-header">
+      <h2><i class="fa-solid fa-cloud-arrow-up"></i> Upload Image</h2>
+    </div>
+    <div class="card-body">
+      <!-- Patient selector -->
+      <div class="form-group mb-3">
+        <label>Select Patient <span class="required">*</span></label>
+        <select id="patientSelect" class="form-select">
+          <option value=""> -  Choose a patient  - </option>
+          {% for p in patients %}
+            <option value="{{ p.id }}" {{ 'selected' if selected_patient_id == p.id }}>
+              {{ p.name }}{% if p.dob %} ({{ p.age() }} yrs){% endif %}
+            </option>
+          {% endfor %}
+        </select>
+        {% if not patients %}
+          <p class="text-muted mt-2"><i class="fa-solid fa-triangle-exclamation"></i> No patients found. Ask admin to add patients first.</p>
+        {% endif %}
+        {% if source_detection %}
+          <p class="text-muted mt-2 mb-0">
+            <i class="fa-solid fa-image"></i>
+            Loaded uploaded patient image. Click <strong>Run Detection</strong> to analyze it, or choose another file.
+          </p>
+        {% endif %}
+      </div>
+
+      <!-- Drop zone -->
+      <div id="dropZone" class="drop-zone">
+        <i class="fa-solid fa-image drop-icon"></i>
+        <p>Drag &amp; drop your image here</p>
+        <p class="hint">or</p>
+        <label class="btn-upload" for="fileInput">
+          <i class="fa-solid fa-folder-open"></i> Browse File
+        </label>
+        <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.bmp,.webp" hidden/>
+        <p class="hint supported">Supported: PNG, JPG, JPEG, BMP, WEBP &nbsp;·&nbsp; Max 16 MB</p>
+      </div>
+
+      <!-- Preview -->
+      <div id="previewSection" class="hidden">
+        <h3 class="section-label">Selected Image</h3>
+        <div class="preview-wrap">
+          <img id="previewImg" src="" alt="Preview"/>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="detect-actions mt-3">
+        <button id="detectBtn" class="btn btn-primary btn-full" onclick="runDetection()" disabled>
+          <i class="fa-solid fa-magnifying-glass"></i> Run Detection
+        </button>
+        <button class="btn btn-outline btn-full" onclick="clearAll()">
+          <i class="fa-solid fa-trash"></i> Clear
+        </button>
+      </div>
+
+      <!-- Error toast -->
+      <div id="errorToast" class="error-toast hidden"></div>
+    </div>
+  </div>
+
+  <!-- Right: Results Panel -->
+  <div class="card detect-result-card" id="resultCard">
+    <div class="card-header">
+      <h2><i class="fa-solid fa-chart-bar"></i> Detection Results</h2>
+    </div>
+    <div class="card-body">
+      <!-- Spinner -->
+      <div id="spinner" class="spinner-wrap hidden">
+        <div class="spinner"></div>
+        <p>Analyzing image...</p>
+      </div>
+
+      <!-- Empty state -->
+      <div id="emptyResult" class="empty-result">
+        <i class="fa-solid fa-magnifying-glass-chart"></i>
+        <p>Upload an image and click<br/><strong>Run Detection</strong> to see results.</p>
+      </div>
+
+      <!-- Result content -->
+      <div id="resultContent" class="hidden">
+        <!-- Images side-by-side -->
+        <div class="image-compare" id="imageCompare">
+          <div class="img-box">
+            <p class="img-label">Original</p>
+            <img id="origImg" src="" alt="Original" class="zoomable" onclick="openLightbox(this.src)" title="Click to enlarge"/>
+          </div>
+          <div class="img-box">
+            <p class="img-label">Annotated</p>
+            <img id="annotImg" src="" alt="Annotated" class="zoomable" onclick="openLightbox(this.src)" title="Click to enlarge"/>
+          </div>
+        </div>
+
+        <!-- Summary bar -->
+        <div id="summaryBar" class="summary-bar mt-3"></div>
+
+        <!-- Findings list -->
+        <div id="findingsList" class="findings-list mt-3"></div>
+
+        <div class="detect-actions mt-3">
+          <button id="saveEditsBtn" class="btn btn-primary" onclick="saveDetectionEdits()" disabled>
+            <i class="fa-solid fa-floppy-disk"></i> Save Changes
+          </button>
+          <button id="undoEditsBtn" class="btn btn-outline" onclick="undoDetectionEdits()" disabled>
+            <i class="fa-solid fa-rotate-left"></i> Undo Changes
+          </button>
+          <button id="emailReportBtn" class="btn btn-outline hidden" onclick="sendReportEmail()" disabled>
+            <i class="fa-solid fa-paper-plane"></i> Send to Patient Email
+          </button>
+        </div>
+
+        <!-- Save status -->
+        <div id="saveNote" class="save-note mt-3">
+          <i class="fa-solid fa-circle-info"></i>
+          You can edit or remove findings, then click Save Changes.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out">
+  <img id="lightboxImg" src="" style="max-width:92vw;max-height:92vh;border-radius:10px;box-shadow:0 8px 60px rgba(0,0,0,.6);object-fit:contain"/>
+  <button onclick="closeLightbox()" style="position:fixed;top:1.2rem;right:1.5rem;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.6rem;width:40px;height:40px;border-radius:50%;cursor:pointer;line-height:1">-</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script id="preloadedSourceData" type="application/json">{{ source_detection|tojson if source_detection else 'null' }}</script>
+<script>
+const fileInput  = document.getElementById('fileInput');
+const dropZone   = document.getElementById('dropZone');
+const previewSec = document.getElementById('previewSection');
+const previewImg = document.getElementById('previewImg');
+const detectBtn  = document.getElementById('detectBtn');
+const saveBtn    = document.getElementById('saveEditsBtn');
+const undoBtn    = document.getElementById('undoEditsBtn');
+const emailBtn   = document.getElementById('emailReportBtn');
+const patientSelect = document.getElementById('patientSelect');
+const preloadedSource = JSON.parse(document.getElementById('preloadedSourceData').textContent || 'null');
+
+let selectedFile = null;
+let selectedSourceDetectionId = null;
+let currentDetectionId = null;
+let editableFindings = [];
+let originalFindings = [];
+let currentDraft = null;
+
+initializePreloadedSource();
+
+function setEmailButtonVisible(show) {
+  emailBtn.classList.toggle('hidden', !show);
+  emailBtn.disabled = !show;
+}
+
+fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+
+function handleFile(file) {
+  if (!file) return;
+  selectedFile = file;
+  selectedSourceDetectionId = null;
+  const reader = new FileReader();
+  reader.onload = ev => { previewImg.src = ev.target.result; };
+  reader.readAsDataURL(file);
+  previewSec.classList.remove('hidden');
+  detectBtn.disabled = false;
+  document.getElementById('errorToast').classList.add('hidden');
+}
+
+function clearAll() {
+  selectedFile    = null;
+  selectedSourceDetectionId = null;
+  fileInput.value = '';
+  currentDetectionId = null;
+  editableFindings = [];
+  originalFindings = [];
+  currentDraft = null;
+  previewSec.classList.add('hidden');
+  detectBtn.disabled = true;
+  saveBtn.disabled = true;
+  undoBtn.disabled = true;
+  setEmailButtonVisible(false);
+  document.getElementById('resultContent').classList.add('hidden');
+  document.getElementById('emptyResult').classList.remove('hidden');
+  document.getElementById('errorToast').classList.add('hidden');
+}
+
+async function runDetection() {
+  const patientId = patientSelect.value;
+  if (!patientId) { showError('Please select a patient first.'); return; }
+  if (!selectedFile && !selectedSourceDetectionId) {
+    showError('Please upload an image first.');
+    return;
+  }
+
+  setLoading(true);
+
+  const fd = new FormData();
+  if (selectedFile) {
+    fd.append('file', selectedFile);
+  } else if (selectedSourceDetectionId) {
+    fd.append('source_detection_id', selectedSourceDetectionId);
+  }
+  fd.append('patient_id', patientId);
+
+  try {
+    const res  = await fetch('/detect', { method: 'POST', body: fd });
+    const data = await res.json();
+    setLoading(false);
+    if (data.error) { showError(data.error); return; }
+    renderResults(data);
+  } catch(e) {
+    setLoading(false);
+    showError('Network error. Please try again.');
+  }
+}
+
+function setLoading(on) {
+  document.getElementById('spinner').classList.toggle('hidden', !on);
+  document.getElementById('emptyResult').classList.add('hidden');
+  if (on) document.getElementById('resultContent').classList.add('hidden');
+  detectBtn.disabled = on;
+}
+
+function renderResults(data) {
+  document.getElementById('origImg').src  = data.original_image;
+  document.getElementById('annotImg').src = data.annotated_image;
+  currentDetectionId = data.detection_id;
+  editableFindings = JSON.parse(JSON.stringify(data.detections || []));
+  originalFindings = JSON.parse(JSON.stringify(data.detections || []));
+  currentDraft = {
+    patient_id: data.patient_id,
+    original_image: data.original_image_name,
+    annotated_image: data.annotated_image_name,
+    source_detection_id: data.source_detection_id || null,
+  };
+
+  renderSummary();
+  renderFindingsEditor();
+
+  saveBtn.disabled = false;
+  undoBtn.disabled = true;
+  setEmailButtonVisible(false);
+  setSaveNote('Preview ready. Edit findings and click Save Changes to store in patient history.', 'info');
+  document.getElementById('resultContent').classList.remove('hidden');
+}
+
+function renderSummary() {
+  const sb = document.getElementById('summaryBar');
+  const total = editableFindings.length;
+  sb.innerHTML = total === 0
+    ? `<div class="sum-healthy"><i class="fa-solid fa-circle-check"></i> No findings detected - healthy image</div>`
+    : `<div class="sum-findings"><i class="fa-solid fa-triangle-exclamation"></i> <strong>${total}</strong> finding${total !== 1 ? 's' : ''} detected</div>`;
+}
+
+function renderFindingsEditor() {
+  const fl = document.getElementById('findingsList');
+  if (!editableFindings.length) {
+    fl.innerHTML = '<div class="text-muted">No findings remaining. Click Save Changes to keep this result.</div>';
+    return;
+  }
+
+  fl.innerHTML = editableFindings.map((f, idx) => `
+    <div class="finding-item" style="border-left:4px solid ${escapeHtml(f.color_hex || '#22c55e')}">
+      <div class="finding-header finding-header-edit">
+        <div>
+          <strong>${escapeHtml(f.label || 'Unknown')}</strong>
+          <span class="badge badge-warning">${escapeHtml(f.confidence_pct || '')}</span>
+          <span class="badge badge-blue">${escapeHtml(f.severity || '')}</span>
+        </div>
+        <button class="btn btn-outline" type="button" onclick="removeFinding(${idx})">
+          <i class="fa-solid fa-trash"></i> Remove
+        </button>
+      </div>
+
+      ${f.crop_image_url ? `
+      <div class="mt-2 finding-crop-row">
+        <img class="finding-crop-thumb" src="${escapeHtml(f.crop_image_url)}" alt="Detection crop" onclick="openLightbox('${escapeHtml(f.crop_image_url)}')"/>
+        <span class="text-muted finding-crop-caption">Detected area preview</span>
+      </div>` : ''}
+
+      <div class="mt-2 finding-fields-grid">
+        <div class="finding-field-col">
+          <label class="finding-field-label">Label</label>
+          <input class="form-control finding-control" type="text" value="${escapeHtml(f.label || '')}" oninput="updateFindingField(${idx}, 'label', this.value)" />
+        </div>
+        <div class="finding-field-col">
+          <label class="finding-field-label">Severity</label>
+          <select class="form-select finding-control" onchange="updateFindingField(${idx}, 'severity', this.value)">
+            ${renderSeverityOptions(f.severity || 'Review')}
+          </select>
+        </div>
+      </div>
+
+      <label class="mt-2 finding-field-label">Review</label>
+      <textarea class="form-control finding-control" rows="3" oninput="updateFindingField(${idx}, 'description', this.value)">${escapeHtml(f.description || '')}</textarea>
+
+      <label class="mt-2 finding-field-label">Advice</label>
+      <textarea class="form-control finding-control" rows="3" oninput="updateFindingField(${idx}, 'recommendation', this.value)">${escapeHtml(f.recommendation || '')}</textarea>
+    </div>
+  `).join('');
+}
+
+function updateFindingField(index, field, value) {
+  if (!editableFindings[index]) return;
+  editableFindings[index][field] = value;
+  markUnsaved();
+}
+
+function renderSeverityOptions(selected) {
+  const options = ['Low', 'Moderate', 'High', 'Critical', 'Review'];
+  return options.map(opt => `<option value="${opt}" ${opt === selected ? 'selected' : ''}>${opt}</option>`).join('');
+}
+
+function markUnsaved() {
+  undoBtn.disabled = false;
+  setEmailButtonVisible(false);
+  setSaveNote('Unsaved changes. Click Save Changes to update this detection.', 'warning');
+}
+
+function removeFinding(index) {
+  if (!confirm('Remove this detection finding?')) return;
+  editableFindings.splice(index, 1);
+  renderSummary();
+  renderFindingsEditor();
+  markUnsaved();
+}
+
+function undoDetectionEdits() {
+  editableFindings = JSON.parse(JSON.stringify(originalFindings));
+  renderSummary();
+  renderFindingsEditor();
+  undoBtn.disabled = true;
+  setEmailButtonVisible(!!currentDetectionId && !currentDraft);
+  setSaveNote('Changes reverted. You are back to the last saved version.', 'info');
+}
+
+async function saveDetectionEdits() {
+  if (!currentDetectionId && !currentDraft) {
+    showError('No detection result to save.');
+    return;
+  }
+
+  saveBtn.disabled = true;
+  try {
+    const endpoint = currentDetectionId
+      ? `/dentist/detections/${currentDetectionId}/save`
+      : '/dentist/detections/save-new';
+
+    const payload = currentDetectionId
+      ? {
+          detections: editableFindings,
+          original_image: currentDraft ? currentDraft.original_image : undefined,
+          annotated_image: currentDraft ? currentDraft.annotated_image : undefined,
+        }
+      : {
+          patient_id: currentDraft.patient_id,
+          original_image: currentDraft.original_image,
+          annotated_image: currentDraft.annotated_image,
+          detections: editableFindings,
+        };
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      throw new Error(data.error || 'Failed to save changes');
+    }
+
+    currentDetectionId = data.detection_id || currentDetectionId;
+    currentDraft = null;
+    editableFindings = data.detections || [];
+    originalFindings = JSON.parse(JSON.stringify(editableFindings));
+    renderSummary();
+    renderFindingsEditor();
+    undoBtn.disabled = true;
+    setEmailButtonVisible(true);
+    setSaveNote('Changes saved to patient history successfully.', 'success');
+  } catch (err) {
+    showError(err.message || 'Could not save changes.');
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
+
+async function sendReportEmail() {
+  if (!currentDetectionId) {
+    showError('Please save detection first before sending email.');
+    return;
+  }
+
+  emailBtn.disabled = true;
+  try {
+    const res = await fetch(`/dentist/detections/${currentDetectionId}/email-report`, {
+      method: 'POST'
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      throw new Error(data.error || 'Failed to send email report');
+    }
+
+    alert(data.message || 'Report emailed successfully.');
+  } catch (err) {
+    showError(err.message || 'Could not send email report.');
+  } finally {
+    emailBtn.disabled = false;
+  }
+}
+
+function setSaveNote(message, type) {
+  const n = document.getElementById('saveNote');
+  const icon = type === 'success'
+    ? 'fa-circle-check text-success'
+    : type === 'warning'
+      ? 'fa-triangle-exclamation text-warning'
+      : 'fa-circle-info';
+  n.innerHTML = `<i class="fa-solid ${icon}"></i> ${escapeHtml(message)}`;
+}
+
+function escapeHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function showError(msg) {
+  const t = document.getElementById('errorToast');
+  t.textContent = msg;
+  t.classList.remove('hidden');
+}
+
+function initializePreloadedSource() {
+  if (!preloadedSource) return;
+  selectedSourceDetectionId = preloadedSource.id;
+  selectedFile = null;
+  fileInput.value = '';
+
+  if (patientSelect && preloadedSource.patient_id) {
+    patientSelect.value = String(preloadedSource.patient_id);
+  }
+
+  if (preloadedSource.original_image_url) {
+    previewImg.src = preloadedSource.original_image_url;
+    previewSec.classList.remove('hidden');
+    detectBtn.disabled = false;
+  }
+}
+
+function openLightbox(src) {
+  const lb = document.getElementById('lightbox');
+  document.getElementById('lightboxImg').src = src;
+  lb.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+</script>
+{% endblock %}
+
+
+
+

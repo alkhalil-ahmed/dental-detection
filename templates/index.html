@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DentAI-X - Disease Detection & Classification</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <i class="fa-solid fa-tooth logo-icon"></i>
+      <span class="logo-text">DentAI-X</span>
+    </div>
+    <nav>
+      <a href="/" class="nav-link active">Detect</a>
+      <a href="/about" class="nav-link">About</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-text">
+    <h1>DentAI-X</h1>
+    <p>Deep Learning-Powered Dental Disease Detection and Clinical Decision Support on Dental X-Ray Images under the DentAI-X.</p>
+  </div>
+</section>
+
+<main class="container">
+
+  <!-- Upload Card -->
+  <section class="card upload-card">
+    <h2><i class="fa-solid fa-cloud-arrow-up"></i> Upload Image</h2>
+    <div id="dropZone" class="drop-zone">
+      <i class="fa-solid fa-image drop-icon"></i>
+      <p>Drag &amp; drop your image here</p>
+      <p class="hint">or</p>
+      <label class="btn-upload" for="fileInput">
+        <i class="fa-solid fa-folder-open"></i> Browse File
+      </label>
+      <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.bmp,.webp" hidden/>
+      <p class="hint supported">Supported: PNG, JPG, JPEG, BMP, WEBP &nbsp;·&nbsp; Max 16 MB</p>
+    </div>
+
+    <!-- Preview -->
+    <div id="previewSection" class="preview-section hidden">
+      <h3>Selected Image</h3>
+      <img id="previewImg" class="preview-img" alt="Preview"/>
+      <div class="preview-actions">
+        <button id="detectBtn" class="btn-primary">
+          <i class="fa-solid fa-magnifying-glass"></i> Run Detection
+        </button>
+        <button id="clearBtn" class="btn-secondary">
+          <i class="fa-solid fa-trash"></i> Clear
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Spinner -->
+  <div id="loadingSection" class="loading-section hidden">
+    <div class="spinner"></div>
+    <p>Analysing image with deep learning&hellip;</p>
+  </div>
+
+  <!-- Results -->
+  <section id="resultsSection" class="hidden">
+
+    <!-- Image comparison -->
+    <div class="card images-card">
+      <h2><i class="fa-solid fa-images"></i> Detection Results</h2>
+      <div class="image-grid">
+        <div class="image-box">
+          <p class="img-label">Original</p>
+          <img id="originalImg" alt="Original"/>
+        </div>
+        <div class="image-box">
+          <p class="img-label">Annotated</p>
+          <img id="annotatedImg" alt="Annotated"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary banner -->
+    <div id="summaryBanner" class="card summary-card"></div>
+
+    <!-- Detection table -->
+    <div id="detectionCards" class="card detections-card"></div>
+
+    <!-- New scan button -->
+    <div style="text-align:center; margin: 2rem 0;">
+      <button id="newScanBtn" class="btn-primary">
+        <i class="fa-solid fa-rotate"></i> New Scan
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>DentAI-X &copy; 2026 &nbsp;|&nbsp; Deep learning-powered dental disease detection &nbsp;|&nbsp;
+     <em>For educational/research use only - not a substitute for professional diagnosis.</em></p>
+</footer>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
+
+
+
+

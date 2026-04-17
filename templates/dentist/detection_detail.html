@@ -1,0 +1,140 @@
+﻿{% extends "base.html" %}
+{% block title %}Detection #{{ det.id }} - DentAI-X{% endblock %}
+{% block page_title %}Detection Detail{% endblock %}
+
+{% block content %}
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header">
+      <h2><i class="fa-solid fa-file-medical"></i> Detection #{{ det.id }}</h2>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <a href="{{ url_for('dentist_detection_report_pdf', did=det.id) }}" class="btn btn-sm btn-primary" target="_blank" rel="noopener">
+          <i class="fa-solid fa-file-pdf"></i> View PDF Report
+        </a>
+        <button id="sendEmailBtn" type="button" class="btn btn-sm btn-outline" data-detection-id="{{ det.id }}">
+          <i class="fa-solid fa-paper-plane"></i> Send to Patient Email
+        </button>
+        <a href="{{ url_for('dentist_patient_detail', pid=det.patient_id) if det.patient else url_for('dentist_patients') }}" class="btn btn-sm btn-outline">
+          <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="info-pairs">
+        <div class="info-pair">
+          <span class="info-label">Patient</span>
+          <span class="info-value">{{ det.patient.name if det.patient else ' - ' }}</span>
+        </div>
+        <div class="info-pair">
+          <span class="info-label">Date</span>
+          <span class="info-value">{{ det.created_at | myt }}</span>
+        </div>
+        <div class="info-pair">
+          <span class="info-label">Findings</span>
+          <span class="info-value">
+            {% if det.total_findings == 0 %}
+              <span class="badge badge-success">No findings</span>
+            {% else %}
+              <span class="badge badge-warning">{{ det.total_findings }}</span>
+            {% endif %}
+          </span>
+        </div>
+      </div>
+
+      <div class="image-compare mt-4">
+        <div class="img-box">
+          <p class="img-label">Original</p>
+          {% if det.original_image %}
+            <img src="{{ url_for('static', filename='uploads/' ~ det.original_image) }}" alt="Original" class="zoomable-xray" title="Click to enlarge"/>
+          {% else %}<p class="text-muted">Not available</p>{% endif %}
+        </div>
+        <div class="img-box">
+          <p class="img-label">Annotated</p>
+          {% if det.annotated_image %}
+            <img src="{{ url_for('static', filename='uploads/' ~ det.annotated_image) }}" alt="Annotated" class="zoomable-xray" title="Click to enlarge"/>
+          {% else %}<p class="text-muted">Not available</p>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-header"><h2><i class="fa-solid fa-list-check"></i> Findings</h2></div>
+    <div class="card-body">
+      {% if findings %}
+        {% for f in findings %}
+        <div class="finding-item">
+          <div class="finding-header">
+            <strong>{{ f.label }}</strong>
+            <span class="badge badge-warning">{{ f.confidence_pct }}</span>
+            <span class="badge badge-blue">{{ f.severity }}</span>
+          </div>
+          <p class="text-muted">{{ f.description }}</p>
+          <p><i class="fa-solid fa-stethoscope"></i> <em>{{ f.recommendation }}</em></p>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted text-center py-4">No findings detected.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="xrayLightbox" class="xray-lightbox">
+  <button class="xlb-close" id="xlbClose"><i class="fa-solid fa-xmark"></i></button>
+  <div class="xlb-inner">
+    <img id="xlbImg" src="" alt=""/>
+    <p id="xlbCaption" class="xlb-caption"></p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function sendReportEmail(detectionId) {
+  const btn = document.getElementById('sendEmailBtn');
+  if (!btn) return;
+
+  btn.disabled = true;
+  try {
+    const res = await fetch(`/dentist/detections/${detectionId}/email-report`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      throw new Error(data.error || 'Failed to send email');
+    }
+    alert(data.message || 'Report sent to patient email.');
+  } catch (err) {
+    alert(err.message || 'Could not send email report.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+const sendEmailBtn = document.getElementById('sendEmailBtn');
+if (sendEmailBtn) {
+  sendEmailBtn.addEventListener('click', function () {
+    const did = Number(this.dataset.detectionId || '0');
+    if (did > 0) sendReportEmail(did);
+  });
+}
+
+document.querySelectorAll('.zoomable-xray').forEach(function(img){
+  img.addEventListener('click', function(){
+    document.getElementById('xlbImg').src = this.src;
+    document.getElementById('xlbCaption').textContent = this.alt;
+    document.getElementById('xrayLightbox').classList.add('xlb-open');
+  });
+});
+document.getElementById('xlbClose').addEventListener('click', closeLightbox);
+document.getElementById('xrayLightbox').addEventListener('click', function(e){
+  if(e.target === this) closeLightbox();
+});
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeLightbox(); });
+function closeLightbox(){ document.getElementById('xrayLightbox').classList.remove('xlb-open'); }
+</script>
+{% endblock %}
+
+
+
+

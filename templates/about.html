@@ -1,0 +1,160 @@
+﻿{% extends "base.html" %}
+{% block title %}About – DentAI-X{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero ──────────────────────────────────────────────────────── -->
+<div class="about-hero">
+  <div class="about-orb about-orb1"></div>
+  <div class="about-orb about-orb2"></div>
+  <div class="about-hero-body">
+    <div class="about-badge"><i class="fa-solid fa-tooth"></i> DentAI-X Platform</div>
+    <h1>AI-Powered Dental<br><span>Diagnosis System</span></h1>
+    <p>An intelligent platform combining expert dentistry with advanced deep learning to detect dental conditions from X-ray images in real time.</p>
+  </div>
+</div>
+
+<!-- ── What We Do ────────────────────────────────────────────────── -->
+<div class="about-features">
+  <div class="af-card">
+    <div class="af-icon af-blue"><i class="fa-solid fa-brain"></i></div>
+    <h3>AI Detection</h3>
+    <p>Deep learning model trained to identify caries, calculus, implants, impacted teeth, fillings and more from dental X-rays.</p>
+  </div>
+  <div class="af-card">
+    <div class="af-icon af-teal"><i class="fa-solid fa-shield-halved"></i></div>
+    <h3>Role-Based Access</h3>
+    <p>Secure admin and dentist roles — each with tailored dashboards, patient management and detection history.</p>
+  </div>
+  <div class="af-card">
+    <div class="af-icon af-purple"><i class="fa-solid fa-chart-bar"></i></div>
+    <h3>Full History</h3>
+    <p>Every detection is stored with annotated images, severity scores and clinical recommendations for review.</p>
+  </div>
+</div>
+
+<!-- ── Team Section ──────────────────────────────────────────────── -->
+<div class="about-team-wrap">
+  <div class="about-team-hdr">
+    <p class="ath-eyebrow">The People Behind DentAI-X</p>
+    <h2 class="ath-title">Meet Our Team</h2>
+    <p class="ath-sub">A dedicated group bringing together clinical dentistry and cutting-edge AI technology to transform patient care.</p>
+  </div>
+
+  <div class="team-grid-v2">
+
+    <!-- Card 1 – Dr. Muhammad Amirul (Supervisor) -->
+    <div class="tcv2 tcv2-supervisor">
+      <div class="tcv2-top">
+        <div class="tcv2-photo-wrap">
+          <div class="tcv2-photo tcv2-blue">
+            <img src="{{ url_for('static', filename='images/svamirul2.png') }}" alt="Dr. Muhammad Amirul Bin Abdullah"/>
+          </div>
+          <div class="tcv2-status"></div>
+        </div>
+        <div class="tcv2-badge tcv2-badge-blue">Supervisor</div>
+      </div>
+      <h3 class="tcv2-name">Dr. Muhammad Amirul<br>Bin Abdullah</h3>
+      <span class="tcv2-role tcv2-role-blue">MSc Research Supervisor</span>
+      <p class="tcv2-bio">Academic supervisor overseeing this MSc research project on AI-powered dental disease detection. Further details will be updated shortly.</p>
+      <div class="tcv2-divider"></div>
+      <div class="tcv2-tags">
+        <span class="tcv2-tag"><i class="fa-solid fa-building-columns"></i> UMPSA Expert</span>
+        <span class="tcv2-tag"><i class="fa-solid fa-microscope"></i> Research</span>
+      </div>
+      <div class="tcv2-socials">
+        <a href="https://www.linkedin.com/in/muhammad-amirul-abdullah-91745544/?originalSubdomain=my" class="tsoc tsoc-linkedin" title="LinkedIn" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+        <a href="https://scholar.google.com/citations?user=GYcVAQwAAAAJ&hl=en" class="tsoc tsoc-scopus" title="Scopus ID" target="_blank" rel="noopener noreferrer" aria-label="Scopus ID"><span class="tsoc-scopus-txt">Scopus ID</span></a>
+      </div>
+    </div>
+
+    <!-- Card 2 – Alkhalil (featured) -->
+    <div class="tcv2 tcv2-featured">
+      <div class="tcv2-top">
+        <div class="tcv2-photo-wrap">
+          <div class="tcv2-photo tcv2-teal">
+            <img src="{{ url_for('static', filename='images/mypic2.png') }}" alt="Alkhalil Abdulhameed Saif Ahmed"/>
+          </div>
+          <div class="tcv2-status"></div>
+        </div>
+        <div class="tcv2-badge tcv2-badge-teal">Researcher</div>
+      </div>
+      <h3 class="tcv2-name">Alkhalil Abdulhameed<br>Saif Ahmed</h3>
+      <span class="tcv2-role tcv2-role-teal">MSc. Deep Learning Researcher</span>
+      <p class="tcv2-bio">Master of Science candidate specialising in dental disease detection using deep learning. Designed and built this AI-powered X-ray analysis platform with deep learning.</p>
+      <div class="tcv2-divider"></div>
+      <div class="tcv2-tags">
+        <span class="tcv2-tag"><i class="fa-solid fa-brain"></i> Deep Learning</span>
+        <span class="tcv2-tag"><i class="fa-solid fa-tooth"></i> DentAI-X</span>
+      </div>
+      <div class="tcv2-socials">
+        <a href="https://www.linkedin.com/in/alkhalilahmed" class="tsoc tsoc-linkedin" title="LinkedIn" target="_blank"><i class="fa-brands fa-linkedin-in"></i></a>
+        <a href="https://github.com/alkhalil-ahmed" class="tsoc tsoc-github" title="GitHub" target="_blank"><i class="fa-brands fa-github"></i></a>
+      </div>
+    </div>
+
+    <!-- Card 3 – Dr. Ahmad Badruddin (Field Supervisor) -->
+    <div class="tcv2 tcv2-fieldsv">
+      <div class="tcv2-top">
+        <div class="tcv2-photo-wrap">
+          <div class="tcv2-photo tcv2-purple">
+            <img src="{{ url_for('static', filename='images/svghazali.png') }}" alt="Dr. Ahmad Badruddin Bin Ghazali"/>
+          </div>
+          <div class="tcv2-status"></div>
+        </div>
+        <div class="tcv2-badge tcv2-badge-purple">Field Supervisor</div>
+      </div>
+      <h3 class="tcv2-name">Dr. Ahmad Badruddin<br>Bin Ghazali</h3>
+      <span class="tcv2-role tcv2-role-purple">Oral Radiologist &amp; Lecturer, IIUM</span>
+      <p class="tcv2-bio">Lecturer at the Oral Radiology Unit, Kulliyyah of Dentistry, IIUM. Member of MDA, IADMFR, AAOMFR, and IDAM with clinical experience since 2015.</p>
+      <div class="tcv2-divider"></div>
+      <div class="tcv2-tags">
+        <span class="tcv2-tag"><i class="fa-solid fa-x-ray"></i> Oral Radiology</span>
+        <span class="tcv2-tag"><i class="fa-solid fa-tooth"></i> Dentistry</span>
+      </div>
+      <div class="tcv2-socials">
+        <a href="https://www.linkedin.com/in/ahmad-badruddin-ghazali-473769a2/?originalSubdomain=my" class="tsoc tsoc-linkedin" title="LinkedIn" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+        <a href="https://scholar.google.com/citations?user=-uiH8QIAAAAJ&hl=en" class="tsoc tsoc-scopus" title="Scopus ID" target="_blank" rel="noopener noreferrer" aria-label="Scopus ID"><span class="tsoc-scopus-txt">Scopus ID</span></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Academic Partners ─────────────────────────────────────────── -->
+<div class="about-partners">
+  <div class="about-team-hdr">
+    <p class="ath-eyebrow">Academic Affiliation</p>
+    <h2 class="ath-title">Supported By</h2>
+    <p class="ath-sub">This project is developed through a focused collaboration between the Faculty of Manufacturing and Mechatronic Engineering, Universiti Malaysia Pahang Al-Sultan Abdullah and the Kulliyyah of Dentistry, International Islamic University Malaysia.</p>
+  </div>
+  <div class="partners-grid">
+
+    <div class="partner-card">
+      <div class="partner-logo-wrap">
+        <img src="{{ url_for('static', filename='images/UMPSA.png') }}" alt="Universiti Malaysia Pahang Al-Sultan Abdullah"/>
+      </div>
+      <div class="partner-info">
+        <h3>Faculty of Manufacturing and<br>Mechatronic Engineering</h3>
+        <p class="partner-org">Universiti Malaysia Pahang Al-Sultan Abdullah</p>
+        <span class="partner-short">UMPSA</span>
+      </div>
+    </div>
+
+    <div class="partner-card">
+      <div class="partner-logo-wrap">
+        <img src="{{ url_for('static', filename='images/IIUM.png') }}" alt="International Islamic University Malaysia"/>
+      </div>
+      <div class="partner-info">
+        <h3>Kulliyyah of Dentistry</h3>
+        <p class="partner-org">International Islamic University Malaysia</p>
+        <span class="partner-short">IIUM</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+

@@ -1,0 +1,44 @@
+﻿{% extends "base.html" %}
+{% block title %}My Patients - DentAI-X{% endblock %}
+{% block page_title %}My Patients{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-user-injured"></i> Patient List</h2>
+    <span class="badge badge-blue">{{ patients|length }} patient{{ 's' if patients|length != 1 }}</span>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>#</th><th>Name</th><th>Age</th><th>Gender</th><th>Phone</th><th>Email</th><th>Detections</th><th>Registered</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        {% for p in patients %}
+        <tr>
+          <td>{{ p.id }}</td>
+          <td><strong>{{ p.name }}</strong></td>
+          <td>{{ p.age() or ' - ' }}</td>
+          <td>{{ p.gender or ' - ' }}</td>
+          <td class="text-muted">{{ p.phone or ' - ' }}</td>
+          <td class="text-muted">{{ p.email or ' - ' }}</td>
+          <td><span class="badge badge-blue">{{ p.detections|length }}</span></td>
+          <td class="text-muted" style="white-space:nowrap">{{ p.created_at | myt }}</td>
+          <td>
+            <a href="{{ url_for('dentist_patient_detail', pid=p.id) }}" class="btn btn-sm btn-primary">
+              <i class="fa-solid fa-eye"></i> View
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="empty-row">No patients found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+
+
+

@@ -1,0 +1,236 @@
+﻿{% extends "base.html" %}
+{% block title %}Admin Dashboard - DentAI-X{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="dh-hero">
+  <div class="dh-orb dh-orb1"></div>
+  <div class="dh-orb dh-orb2"></div>
+  <div class="dh-orb dh-orb3"></div>
+  <div class="dh-dots"></div>
+
+  <div class="dh-body">
+    <div class="dh-eyebrow"><i class="fa-solid fa-shield-halved"></i> Admin Control Panel</div>
+    <h1 class="dh-title">Administer <span>DentAI-X</span><br>with Confidence</h1>
+    <p class="dh-sub">Register patients, manage dental staff, and oversee AI-powered diagnoses - all from one intelligent dashboard.</p>
+    <div class="dh-actions">
+      <a href="{{ url_for('admin_add_user') }}" class="dh-btn-solid"><i class="fa-solid fa-user-plus"></i> Add User</a>
+      <a href="{{ url_for('admin_add_patient') }}" class="dh-btn-ghost"><i class="fa-solid fa-user-injured"></i> Add Patient</a>
+    </div>
+  </div>
+
+  <div class="dh-graphic">
+    <div class="dh-ring dh-ring1"></div>
+    <div class="dh-ring dh-ring2"></div>
+    <i class="fa-solid fa-tooth dh-tooth-icon"></i>
+  </div>
+</div>
+
+<div class="dh-stats-strip">
+  <div class="dss-inner">
+    <div class="dss-label"><i class="fa-solid fa-chart-pie"></i> System Overview</div>
+    <div class="dss-grid">
+      <div class="dss-card">
+        <span class="dss-val">{{ total_patients }}</span>
+        <span class="dss-key">Total Patients</span>
+      </div>
+      <div class="dss-sep"></div>
+      <div class="dss-card">
+        <span class="dss-val">{{ total_dentists }}</span>
+        <span class="dss-key">Active Dentists</span>
+      </div>
+      <div class="dss-sep"></div>
+      <div class="dss-card">
+        <span class="dss-val">{{ total_detections }}</span>
+        <span class="dss-key">Detections Run</span>
+      </div>
+      <div class="dss-sep"></div>
+      <div class="dss-card">
+        <span class="dss-val dss-live"><i class="fa-solid fa-circle"></i> Live</span>
+        <span class="dss-key">Model Status</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dash-main mt-4">
+
+  <!-- Recent detections -->
+  <div class="card dash-table-card">
+    <div class="card-header">
+      <h2><i class="fa-solid fa-clock-rotate-left"></i> Recent Detections</h2>
+      <a href="{{ url_for('admin_history') }}" class="btn btn-sm btn-outline">View All</a>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr><th>#</th><th>Patient</th><th>Dentist</th><th>Findings</th><th>Date</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          {% for d in recent %}
+          <tr>
+            <td><span class="row-num">{{ d.id }}</span></td>
+            <td>
+              <div class="user-cell">
+                <div class="mini-avatar" style="background:var(--primary)">{{ d.patient.name[0]|upper if d.patient else '?' }}</div>
+                {{ d.patient.name if d.patient else '-' }}
+              </div>
+            </td>
+            <td>
+              <div class="user-cell">
+                <div class="mini-avatar" style="background:var(--teal)">{{ d.dentist.username[0]|upper if d.dentist else '?' }}</div>
+                {{ d.dentist.username if d.dentist else '-' }}
+              </div>
+            </td>
+            <td>
+              {% if d.total_findings == 0 %}
+                <span class="badge badge-success"><i class="fa-solid fa-check"></i> Clean</span>
+              {% else %}
+                <span class="badge badge-warning"><i class="fa-solid fa-triangle-exclamation"></i> {{ d.total_findings }} finding{{ 's' if d.total_findings != 1 }}</span>
+              {% endif %}
+            </td>
+            <td class="text-muted">{{ d.created_at | myt('%b %d, %Y  %H:%M') }}</td>
+            <td><a href="{{ url_for('admin_detection_detail', did=d.id) }}" class="btn btn-sm btn-outline">View</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="empty-row"><i class="fa-regular fa-folder-open"></i> No detections yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Side panel -->
+  <div class="dash-side">
+
+    <div class="card">
+      <div class="card-header"><h2><i class="fa-solid fa-bolt"></i> Quick Actions</h2></div>
+      <div class="quick-actions-list">
+        <a href="{{ url_for('admin_add_patient') }}" class="qa-item">
+          <div class="qa-icon qa-blue"><i class="fa-solid fa-user-plus"></i></div>
+          <div><strong>Add Patient</strong><span>Register a new patient</span></div>
+          <i class="fa-solid fa-chevron-right qa-arrow"></i>
+        </a>
+        <a href="{{ url_for('admin_add_user') }}" class="qa-item">
+          <div class="qa-icon qa-teal"><i class="fa-solid fa-user-gear"></i></div>
+          <div><strong>Add User</strong><span>Create dentist account</span></div>
+          <i class="fa-solid fa-chevron-right qa-arrow"></i>
+        </a>
+        <a href="{{ url_for('admin_patients') }}" class="qa-item">
+          <div class="qa-icon qa-purple"><i class="fa-solid fa-users"></i></div>
+          <div><strong>View Patients</strong><span>Manage patient records</span></div>
+          <i class="fa-solid fa-chevron-right qa-arrow"></i>
+        </a>
+        <a href="{{ url_for('admin_history') }}" class="qa-item">
+          <div class="qa-icon qa-orange"><i class="fa-solid fa-chart-bar"></i></div>
+          <div><strong>Full History</strong><span>Browse all detections</span></div>
+          <i class="fa-solid fa-chevron-right qa-arrow"></i>
+        </a>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-header"><h2><i class="fa-solid fa-server"></i> System Status</h2></div>
+      <div class="sys-status-list">
+        <div class="sys-row"><span><i class="fa-solid fa-circle-check" style="color:var(--success)"></i> AI Model</span><span class="badge badge-success">Online</span></div>
+        <div class="sys-row"><span><i class="fa-solid fa-circle-check" style="color:var(--success)"></i> Database</span><span class="badge badge-success">Connected</span></div>
+        <div class="sys-row"><span><i class="fa-solid fa-microchip" style="color:var(--primary)"></i> Inference</span><span class="badge badge-blue">CPU</span></div>
+        <div class="sys-row"><span><i class="fa-solid fa-code-branch" style="color:var(--purple)"></i> Model</span><span class="badge badge-purple">Deep Learning</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="team-section">
+  <div class="team-section-hdr">
+    <p class="tsh-eyebrow">The People Behind DentAI-X</p>
+    <h2 class="tsh-title">Meet Our Team</h2>
+    <p class="tsh-sub">A dedicated group bringing together clinical dentistry and cutting-edge AI technology to transform patient care.</p>
+  </div>
+
+  <div class="team-grid-v2">
+
+    <!-- Card 1 - Dr. Muhammad Amirul (Supervisor) -->
+    <div class="tcv2 tcv2-supervisor">
+      <div class="tcv2-top">
+        <div class="tcv2-photo-wrap">
+          <div class="tcv2-photo tcv2-blue">
+            <img src="{{ url_for('static', filename='images/svamirul2.png') }}" alt="Dr. Muhammad Amirul Bin Abdullah"/>
+          </div>
+          <div class="tcv2-status"></div>
+        </div>
+        <div class="tcv2-badge tcv2-badge-blue">Supervisor</div>
+      </div>
+      <h3 class="tcv2-name">Dr. Muhammad Amirul<br>Bin Abdullah</h3>
+      <span class="tcv2-role tcv2-role-blue">MSc Research Supervisor</span>
+      <p class="tcv2-bio">Academic supervisor overseeing this MSc research project on AI-powered dental disease detection. Further details will be updated shortly.</p>
+      <div class="tcv2-divider"></div>
+      <div class="tcv2-tags">
+        <span class="tcv2-tag"><i class="fa-solid fa-building-columns"></i> UMPSA Expert</span>
+        <span class="tcv2-tag"><i class="fa-solid fa-microscope"></i> Research</span>
+      </div>
+      <div class="tcv2-socials">
+        <a href="https://www.linkedin.com/in/muhammad-amirul-abdullah-91745544/?originalSubdomain=my" class="tsoc tsoc-linkedin" title="LinkedIn" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+        <a href="https://scholar.google.com/citations?user=GYcVAQwAAAAJ&hl=en" class="tsoc tsoc-scopus" title="Scopus ID" target="_blank" rel="noopener noreferrer" aria-label="Scopus ID"><span class="tsoc-scopus-txt">Scopus ID</span></a>
+      </div>
+    </div>
+
+    <!-- Card 2 - Alkhalil (featured) -->
+    <div class="tcv2 tcv2-featured">
+      <div class="tcv2-top">
+        <div class="tcv2-photo-wrap">
+          <div class="tcv2-photo tcv2-teal">
+            <img src="{{ url_for('static', filename='images/mypic2.png') }}" alt="Alkhalil Abdulhameed Saif Ahmed"/>
+          </div>
+          <div class="tcv2-status"></div>
+        </div>
+        <div class="tcv2-badge tcv2-badge-teal">Researcher</div>
+      </div>
+      <h3 class="tcv2-name">Alkhalil Abdulhameed<br>Saif Ahmed</h3>
+      <span class="tcv2-role tcv2-role-teal">MSc. Deep Learning Researcher</span>
+      <p class="tcv2-bio">Master of Science candidate specialising in dental disease detection using deep learning. Designed and built this AI-powered X-ray analysis platform with deep learning.</p>
+      <div class="tcv2-divider"></div>
+      <div class="tcv2-tags">
+        <span class="tcv2-tag"><i class="fa-solid fa-brain"></i> Deep Learning</span>
+        <span class="tcv2-tag"><i class="fa-solid fa-tooth"></i> DentAI-X</span>
+      </div>
+      <div class="tcv2-socials">
+        <a href="https://www.linkedin.com/in/alkhalilahmed" class="tsoc tsoc-linkedin" title="LinkedIn" target="_blank"><i class="fa-brands fa-linkedin-in"></i></a>
+        <a href="https://github.com/alkhalil-ahmed" class="tsoc tsoc-github" title="GitHub" target="_blank"><i class="fa-brands fa-github"></i></a>
+      </div>
+    </div>
+
+    <!-- Card 3 - Dr. Ahmad Badruddin (Field Supervisor) -->
+    <div class="tcv2 tcv2-fieldsv">
+      <div class="tcv2-top">
+        <div class="tcv2-photo-wrap">
+          <div class="tcv2-photo tcv2-purple">
+            <img src="{{ url_for('static', filename='images/svghazali.png') }}" alt="Dr. Ahmad Badruddin Bin Ghazali"/>
+          </div>
+          <div class="tcv2-status"></div>
+        </div>
+        <div class="tcv2-badge tcv2-badge-purple">Field Supervisor</div>
+      </div>
+      <h3 class="tcv2-name">Dr. Ahmad Badruddin<br>Bin Ghazali</h3>
+      <span class="tcv2-role tcv2-role-purple">Oral Radiologist &amp; Lecturer, IIUM</span>
+      <p class="tcv2-bio">Lecturer at the Oral Radiology Unit, Kulliyyah of Dentistry, IIUM. Member of MDA, IADMFR, AAOMFR, and IDAM with clinical experience since 2015.</p>
+      <div class="tcv2-divider"></div>
+      <div class="tcv2-tags">
+        <span class="tcv2-tag"><i class="fa-solid fa-x-ray"></i> Oral Radiology</span>
+        <span class="tcv2-tag"><i class="fa-solid fa-tooth"></i> Dentistry</span>
+      </div>
+      <div class="tcv2-socials">
+        <a href="https://www.linkedin.com/in/ahmad-badruddin-ghazali-473769a2/?originalSubdomain=my" class="tsoc tsoc-linkedin" title="LinkedIn" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+        <a href="https://scholar.google.com/citations?user=-uiH8QIAAAAJ&hl=en" class="tsoc tsoc-scopus" title="Scopus ID" target="_blank" rel="noopener noreferrer" aria-label="Scopus ID"><span class="tsoc-scopus-txt">Scopus ID</span></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+
+

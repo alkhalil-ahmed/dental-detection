@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - DentAI-X</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body class="auth-page">
+<div class="auth-split">
+
+  <!-- Left panel -->
+  <div class="auth-brand">
+    <div class="auth-orb auth-orb-1"></div>
+    <div class="auth-orb auth-orb-2"></div>
+    <div class="auth-orb auth-orb-3"></div>
+    <div class="auth-brand-inner">
+      <div class="auth-brand-icon">
+        <i class="fa-solid fa-tooth"></i>
+      </div>
+      <h2>Smart Dental<br/>Diagnostics</h2>
+      <p class="auth-brand-tagline">AI-powered detection for modern clinics</p>
+    </div>
+  </div>
+
+  <div class="auth-form-wrap">
+    <div class="auth-card">
+      <div class="auth-card-logo"><i class="fa-solid fa-tooth"></i></div>
+      <h1>DentAI-X</h1>
+      <p class="auth-sub">Deep Learning-Powered Dental Disease Detection and Clinical Decision Support on Dental X-Ray Images under the DentAI-X.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">
+            <i class="fa-solid fa-circle-{{ 'check' if category == 'success' else 'xmark' if category == 'danger' else 'info' }}"></i>
+            {{ message|safe }}
+          </div>
+        {% endfor %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('login') }}">
+        <div class="form-group">
+          <label>Username</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" name="username" placeholder="Enter username" required autofocus/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" name="password" id="pwField" placeholder="Enter password" required/>
+            <button type="button" class="pw-toggle" onclick="togglePw('pwField',this)">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="form-row-between">
+          <label class="checkbox-label">
+            <input type="checkbox" name="remember"/> Remember me
+          </label>
+          <a href="{{ url_for('forgot_password') }}" class="link-muted">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In
+        </button>
+      </form>
+
+      <p class="auth-footer-txt">Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
+    </div>
+  </div>
+
+</div>
+<script>
+function togglePw(id, btn) {
+  const f = document.getElementById(id);
+  f.type = f.type === 'password' ? 'text' : 'password';
+  btn.querySelector('i').className = f.type === 'password' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
+}
+</script>
+</body>
+</html>
+
+
+
+

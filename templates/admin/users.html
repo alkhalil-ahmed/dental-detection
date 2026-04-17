@@ -1,0 +1,71 @@
+﻿{% extends "base.html" %}
+{% block title %}Manage Users - DentAI-X{% endblock %}
+{% block page_title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-users-gear"></i> All Users</h2>
+    <a href="{{ url_for('admin_add_user') }}" class="btn btn-primary btn-sm">
+      <i class="fa-solid fa-plus"></i> Add User
+    </a>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>{{ u.id }}</td>
+          <td>
+            <div class="user-cell">
+              <div class="mini-avatar">{{ u.username[0]|upper }}</div>
+              <span>{{ u.username }}</span>
+              {% if u.id == current_user.id %}<span class="badge badge-blue">You</span>{% endif %}
+            </div>
+          </td>
+          <td class="text-muted">{{ u.email }}</td>
+          <td><span class="badge badge-{{ 'purple' if u.role == 'admin' else 'teal' }}">{{ u.role|title }}</span></td>
+          <td>
+            {% if u.is_active %}
+              <span class="badge badge-success">Active</span>
+            {% else %}
+              <span class="badge badge-danger">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="text-muted">{{ u.created_at | myt('%Y-%m-%d') }}</td>
+          <td class="action-cell">
+            <a href="{{ url_for('admin_edit_user', uid=u.id) }}" class="btn btn-sm btn-outline" title="Edit">
+              <i class="fa-solid fa-pen"></i>
+            </a>
+            {% if u.id != current_user.id %}
+              <form method="POST" action="{{ url_for('admin_toggle_user', uid=u.id) }}" style="display:inline">
+                <button class="btn btn-sm {{ 'btn-warning' if u.is_active else 'btn-success' }}" title="{{ 'Deactivate' if u.is_active else 'Activate' }}">
+                  <i class="fa-solid {{ 'fa-ban' if u.is_active else 'fa-check' }}"></i>
+                </button>
+              </form>
+              <form method="POST" action="{{ url_for('admin_delete_user', uid=u.id) }}" style="display:inline"
+                    onsubmit="return confirm('Delete user {{ u.username }}?')">
+                <button class="btn btn-sm btn-danger" title="Delete">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="empty-row">No users found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+
+
+
