@@ -1104,10 +1104,17 @@ def dentist_detect():
                         "original_image_url": url_for("static", filename=f"uploads/{source_det.original_image}"),
                     }
 
+    email_configured = bool(
+        (os.getenv("SMTP_HOST", "").strip() and
+         (os.getenv("MAIL_FROM_EMAIL", "").strip() or os.getenv("SMTP_USER", "").strip()))
+        or os.getenv("RESEND_API_KEY", "").strip()
+    )
+
     return render_template("dentist/detect.html",
                            patients=patients,
                            selected_patient_id=selected_patient_id,
-                           source_detection=source_detection)
+                           source_detection=source_detection,
+                           email_configured=email_configured)
 
 
 @app.route("/dentist/history/<int:did>")
