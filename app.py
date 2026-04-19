@@ -161,6 +161,85 @@ def _env_bool(name: str, default: bool = False) -> bool:
     return str(val).strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _send_via_gmail_api(
+    *,
+    patient_email: str,
+    sender_name: str,
+    sender_email: str,
+    subject: str,
+    text_body: str,
+    html_body: str,
+    pdf_data: bytes,
+    det_id: int,
+):
+    """Send email using Gmail API with OAuth2 refresh token (HTTPS, port 443)."""
+    client_id = os.getenv("GMAIL_CLIENT_ID", "").strip()
+    client_secret = os.getenv("GMAIL_CLIENT_SECRET", "").strip()
+    refresh_token = os.getenv("GMAIL_REFRESH_TOKEN", "").strip()
+
+    if not all([client_id, client_secret, refresh_token]):
+        raise RuntimeError(
+            "Gmail API not configured. Set GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, "
+            "and GMAIL_REFRESH_TOKEN environment variables."
+        )
+
+    # Exchange refresh token for access token
+    token_resp = http_requests.post(
+        "https://oauth2.googleapis.com/token",
+        data={
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "refresh_token": refresh_token,
+            "grant_type": "refresh_token",
+        },
+        timeout=15,
+    )
+    if token_resp.status_code != 200:
+        detail = token_resp.text[:250]
+        raise RuntimeError(f"Gmail OAuth2 token refresh failed ({token_resp.status_code}): {detail}")
+
+    access_token = token_resp.json()["access_token"]
+
+    # Build MIME message
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = formataddr((sender_name, sender_email))
+    msg["To"] = patient_email
+    msg["Reply-To"] = sender_email
+    msg["Date"] = format_datetime(datetime.now(timezone.utc))
+    msg.set_content(text_body)
+    msg.add_alternative(html_body, subtype="html")
+    msg.add_attachment(
+        pdf_data,
+        maintype="application",
+        subtype="pdf",
+        filename=f"DentAI-X_Clinical_Report_{det_id}.pdf",
+    )
+
+    # Encode to base64url as required by Gmail API
+    import base64 as b64module
+    raw_message = b64module.urlsafe_b64encode(msg.as_bytes()).decode("ascii")
+
+    # Send via Gmail API
+    send_resp = http_requests.post(
+        "https://www.googleapis.com/gmail/v1/users/me/messages/send",
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        },
+        json={"raw": raw_message},
+        timeout=30,
+    )
+
+    if send_resp.status_code >= 300:
+        detail = ""
+        try:
+            detail = send_resp.json().get("error", {}).get("message", "")
+        except Exception:
+            detail = send_resp.text[:250]
+        raise RuntimeError(f"Gmail API send failed ({send_resp.status_code}): {detail}")
+
+
 def _send_via_resend(
     *,
     patient_email: str,
@@ -278,6 +357,20 @@ def send_detection_report_email(det, findings) -> str:
 
     provider = os.getenv("EMAIL_PROVIDER", "auto").strip().lower()
     resend_configured = bool(os.getenv("RESEND_API_KEY", "").strip())
+    gmail_api_configured = bool(os.getenv("GMAIL_REFRESH_TOKEN", "").strip())
+
+    if provider == "gmail_api" or (provider == "auto" and gmail_api_configured):
+        _send_via_gmail_api(
+            patient_email=patient_email,
+            sender_name=sender_name,
+            sender_email=sender_email or os.getenv("GMAIL_USER", "").strip(),
+            subject=subject,
+            text_body=text_body,
+            html_body=html_body,
+            pdf_data=pdf_data,
+            det_id=det.id,
+        )
+        return patient_email
 
     if provider == "resend" or (provider == "auto" and resend_configured):
         _send_via_resend(
@@ -294,8 +387,8 @@ def send_detection_report_email(det, findings) -> str:
 
     if not smtp_host or not sender_email:
         raise RuntimeError(
-            "Email is not configured. Set SMTP_HOST and MAIL_FROM_EMAIL (or SMTP_USER), "
-            "or configure Resend with EMAIL_PROVIDER=resend and RESEND_API_KEY."
+            "Email is not configured. Set GMAIL_REFRESH_TOKEN for Gmail API, "
+            "or RESEND_API_KEY for Resend, or SMTP_HOST for SMTP."
         )
 
     msg = EmailMessage()
@@ -1108,6 +1201,7 @@ def dentist_detect():
         (os.getenv("SMTP_HOST", "").strip() and
          (os.getenv("MAIL_FROM_EMAIL", "").strip() or os.getenv("SMTP_USER", "").strip()))
         or os.getenv("RESEND_API_KEY", "").strip()
+        or os.getenv("GMAIL_REFRESH_TOKEN", "").strip()
     )
 
     return render_template("dentist/detect.html",
