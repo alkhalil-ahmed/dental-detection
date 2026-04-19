@@ -1339,7 +1339,7 @@ def dentist_email_detection_report(did):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     except RuntimeError as exc:
-        return jsonify({"error": str(exc)}), 500
+        return jsonify({"error": str(exc)}), 400
     except Exception as exc:
         return jsonify({"error": f"Failed to send email: {exc}"}), 500
 

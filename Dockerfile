@@ -1,11 +1,11 @@
 ## Stage 1: fetch LFS model files from public repo ─────────────────────────
 FROM alpine/git:latest AS lfs
 RUN git lfs install
-RUN git clone --filter=blob:none --no-checkout \
-        https://github.com/alkhalil-ahmed/dental-detection.git /repo && \
-    cd /repo && \
-    git lfs fetch origin main --include="models/*.pt" && \
-    git checkout HEAD -- models/
+RUN git clone --depth 1 --branch main \
+        https://github.com/alkhalil-ahmed/dental-detection.git /repo
+# Verify models are real binaries, not LFS pointers
+RUN ls -lh /repo/models/ && \
+    head -c 20 /repo/models/best.pt | xxd | head -2
 
 ## Stage 2: runtime image ───────────────────────────────────────────────────
 FROM python:3.13-slim
@@ -29,6 +29,11 @@ COPY . .
 
 # Overwrite LFS pointers with actual model binaries from stage 1
 COPY --from=lfs /repo/models/ ./models/
+
+# Trust ultralytics yolov5 repo for torch.hub (avoids interactive prompt)
+ENV TORCH_HOME=/app/.torch
+RUN mkdir -p /app/.torch/hub && \
+    python -c "import torch; torch.hub._validate_not_a_forked_repo = lambda *a, **k: None"
 
 # Railway injects PORT; app.py already reads it from the environment
 EXPOSE ${PORT:-5001}

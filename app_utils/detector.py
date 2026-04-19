@@ -139,15 +139,19 @@ class DentalDetector:
 
         # Try torch.hub backend first (handles models trained with ultralytics/yolov5 repo)
         try:
-            import pathlib
-            # Fix: model saved on Linux uses PosixPath; patch it for Windows
-            pathlib.PosixPath = pathlib.WindowsPath
+            import pathlib, sys
+            # Fix path class mismatch between save OS and load OS
+            if sys.platform == "win32":
+                pathlib.PosixPath = pathlib.WindowsPath
+            else:
+                pathlib.WindowsPath = pathlib.PurePosixPath
             self.model = torch.hub.load(
                 "ultralytics/yolov5",
                 "custom",
                 path=self.model_path,
                 force_reload=False,
                 verbose=False,
+                trust_repo=True,
             )
             self.model.conf = self.conf_threshold
             self.model.iou = self.iou_threshold
