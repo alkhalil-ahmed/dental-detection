@@ -32,6 +32,8 @@ COPY --from=lfs /repo/models/ ./models/
 
 # Trust ultralytics yolov5 repo for torch.hub (avoids interactive prompt)
 ENV TORCH_HOME=/app/.torch
+# Default Resend sandbox sender (Railway may not inject RESEND_FROM_EMAIL)
+ENV RESEND_FROM_EMAIL=onboarding@resend.dev
 RUN mkdir -p /app/.torch/hub && \
     python -c "import torch; torch.hub._validate_not_a_forked_repo = lambda *a, **k: None"
 

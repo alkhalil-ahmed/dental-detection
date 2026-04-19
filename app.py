@@ -176,13 +176,9 @@ def _send_via_resend(
     if not api_key:
         raise RuntimeError("RESEND_API_KEY is not configured.")
 
-    resend_from = os.getenv("RESEND_FROM_EMAIL", "").strip() or sender_email
-    if not resend_from:
-        raise RuntimeError(
-            f"RESEND_FROM_EMAIL is required for Resend provider. "
-            f"env RESEND_FROM_EMAIL={os.getenv('RESEND_FROM_EMAIL')!r}, "
-            f"sender_email={sender_email!r}"
-        )
+    resend_from = (os.getenv("RESEND_FROM_EMAIL", "").strip()
+                    or sender_email
+                    or "onboarding@resend.dev")
 
     payload = {
         "from": formataddr((sender_name, resend_from)),
