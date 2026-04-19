@@ -139,6 +139,7 @@
 {% block scripts %}
 <script id="preloadedSourceData" type="application/json">{{ source_detection|tojson if source_detection else 'null' }}</script>
 <script>
+const EMAIL_CONFIGURED = {{ 'true' if email_configured else 'false' }};
 const fileInput  = document.getElementById('fileInput');
 const dropZone   = document.getElementById('dropZone');
 const previewSec = document.getElementById('previewSection');
@@ -160,6 +161,7 @@ let currentDraft = null;
 initializePreloadedSource();
 
 function setEmailButtonVisible(show) {
+  if (!EMAIL_CONFIGURED) { emailBtn.classList.add('hidden'); emailBtn.disabled = true; return; }
   emailBtn.classList.toggle('hidden', !show);
   emailBtn.disabled = !show;
 }
@@ -397,7 +399,11 @@ async function saveDetectionEdits() {
     renderFindingsEditor();
     undoBtn.disabled = true;
     setEmailButtonVisible(true);
-    setSaveNote('Changes saved to patient history successfully.', 'success');
+    if (EMAIL_CONFIGURED) {
+      setSaveNote('Changes saved to patient history successfully.', 'success');
+    } else {
+      setSaveNote('Changes saved to patient history successfully. Email sending is not configured — ask your admin to set SMTP or Resend credentials in the server environment.', 'success');
+    }
   } catch (err) {
     showError(err.message || 'Could not save changes.');
   } finally {
