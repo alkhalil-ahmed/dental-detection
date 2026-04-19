@@ -1,0 +1,12 @@
+__pycache__
+*.pyc
+*.pyo
+.git
+.gitignore
+.env
+instance/
+*.db
+static/uploads/crops/*
+static/uploads/avatars/*
+README.txt
+nixpacks.toml
