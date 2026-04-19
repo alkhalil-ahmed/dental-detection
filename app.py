@@ -1451,15 +1451,15 @@ if __name__ == "__main__":
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     create_tables()
 
-    # Diagnostic: log email configuration at startup
-    _ep = os.getenv("EMAIL_PROVIDER", "")
-    _rk = os.getenv("RESEND_API_KEY", "")
-    _rf = os.getenv("RESEND_FROM_EMAIL", "")
-    _sh = os.getenv("SMTP_HOST", "")
-    print(f"[EMAIL-CONFIG] EMAIL_PROVIDER={_ep!r}  "
-          f"RESEND_API_KEY={'<set>' if _rk else '<empty>'}  "
-          f"RESEND_FROM_EMAIL={_rf!r}  "
-          f"SMTP_HOST={_sh!r}")
+    # Diagnostic: log ALL email-related env vars at startup
+    _email_vars = {k: v for k, v in os.environ.items()
+                   if any(t in k.upper() for t in ("MAIL", "SMTP", "RESEND", "EMAIL"))}
+    print(f"[EMAIL-CONFIG] Found {len(_email_vars)} email-related env vars:")
+    for _k, _v in sorted(_email_vars.items()):
+        _display = "<set>" if "KEY" in _k.upper() or "PASS" in _k.upper() else repr(_v)
+        print(f"  {_k} = {_display}")
+    if not _email_vars:
+        print("  (none — Railway may not be injecting Service Variables)")
 
     port = int(os.environ.get("PORT", 5001))
     debug = os.environ.get("FLASK_DEBUG", "0") == "1"
