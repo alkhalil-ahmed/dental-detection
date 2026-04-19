@@ -178,7 +178,11 @@ def _send_via_resend(
 
     resend_from = os.getenv("RESEND_FROM_EMAIL", "").strip() or sender_email
     if not resend_from:
-        raise RuntimeError("RESEND_FROM_EMAIL is required for Resend provider.")
+        raise RuntimeError(
+            f"RESEND_FROM_EMAIL is required for Resend provider. "
+            f"env RESEND_FROM_EMAIL={os.getenv('RESEND_FROM_EMAIL')!r}, "
+            f"sender_email={sender_email!r}"
+        )
 
     payload = {
         "from": formataddr((sender_name, resend_from)),
@@ -1446,6 +1450,17 @@ def not_found(e):
 if __name__ == "__main__":
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     create_tables()
+
+    # Diagnostic: log email configuration at startup
+    _ep = os.getenv("EMAIL_PROVIDER", "")
+    _rk = os.getenv("RESEND_API_KEY", "")
+    _rf = os.getenv("RESEND_FROM_EMAIL", "")
+    _sh = os.getenv("SMTP_HOST", "")
+    print(f"[EMAIL-CONFIG] EMAIL_PROVIDER={_ep!r}  "
+          f"RESEND_API_KEY={'<set>' if _rk else '<empty>'}  "
+          f"RESEND_FROM_EMAIL={_rf!r}  "
+          f"SMTP_HOST={_sh!r}")
+
     port = int(os.environ.get("PORT", 5001))
     debug = os.environ.get("FLASK_DEBUG", "0") == "1"
     app.run(debug=debug, host="0.0.0.0", port=port)
