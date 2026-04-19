@@ -1,0 +1,13 @@
+# Railway uses Nixpacks to build.
+# ultralytics pulls in opencv-python (GUI) as a transitive dependency,
+# which overrides opencv-python-headless and crashes on headless Linux
+# with: ImportError: libxcb.so.1: cannot open shared object file
+#
+# This config force-reinstalls the headless variant AFTER all deps resolve,
+# ensuring cv2 has no X11/GUI system-library requirements.
+
+[phases.install]
+cmds = [
+    "pip install -r requirements.txt",
+    "pip install --force-reinstall --no-deps opencv-python-headless>=4.8.0"
+]
